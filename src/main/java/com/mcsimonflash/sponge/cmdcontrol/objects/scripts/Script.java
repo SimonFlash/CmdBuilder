@@ -9,6 +9,8 @@ import com.mcsimonflash.sponge.cmdcontrol.objects.enums.ArgType;
 import com.mcsimonflash.sponge.cmdcontrol.objects.exceptions.ScriptExecutionException;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandElement;
+import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
@@ -34,6 +36,13 @@ public class Script {
         this.arguments = arguments;
         this.executors = executors;
         this.metadata = metadata;
+    }
+
+    public CommandSpec getCmdSpec() {
+        return CommandSpec.builder()
+                .permission("cmdcontrol.scripts." + name + ".base")
+                .arguments(arguments.stream().map(ScriptArgument::getCmdElem).collect(Collectors.toList()).toArray(new CommandElement[0]))
+                .build();
     }
 
     public void registerAliases() {
@@ -114,7 +123,7 @@ public class Script {
     }
 
     public Map<String, Object> createArguments(String rawInput) throws ScriptExecutionException {
-        String[] rawArgs = rawInput.split(" ");
+        String[] rawArgs = rawInput.isEmpty() ? new String[0] : rawInput.split(" ");
         LinkedList<ScriptArgument> requiredArgs = Lists.newLinkedList(arguments.stream().filter(a -> !a.type.equals(ArgType.INJECT)).collect(Collectors.toList()));
         if (rawArgs.length < requiredArgs.size() || (rawArgs.length > requiredArgs.size() && !requiredArgs.getLast().type.equals(ArgType.JOINED_STRINGS))) {
             throw new ScriptExecutionException("Incorrect number of arguments. Required:[" + requiredArgs.size() + "]");

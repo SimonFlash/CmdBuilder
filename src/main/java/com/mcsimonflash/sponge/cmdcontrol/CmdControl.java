@@ -20,6 +20,7 @@ import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
 
@@ -27,17 +28,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 
-@Plugin(id = "cmdcontrol", name = "CmdControl", version = "s6.0-v1.0.0", authors = "Simon_Flash")
+@Plugin(id = "cmdcontrol", name = "CmdControl", version = "s6.0-v1.0.1", authors = "Simon_Flash")
 public class CmdControl {
 
     private static CmdControl plugin;
     public static CmdControl getPlugin() {
         return plugin;
-    }
-
-    private static EconomyService econServ;
-    public static EconomyService getEconServ() {
-        return econServ;
     }
 
     private static URL discord;
@@ -50,10 +46,21 @@ public class CmdControl {
         return wiki;
     }
 
+    private static EconomyService econServ;
+    public static EconomyService getEconServ() {
+        return econServ;
+    }
+
     @Inject
     private Logger logger;
     public Logger getLogger() {
         return logger;
+    }
+
+    @Inject
+    private static PluginContainer container;
+    public static PluginContainer getContainer() {
+        return container;
     }
 
     @Inject
@@ -67,15 +74,17 @@ public class CmdControl {
     public void onInit(GameInitializationEvent event) {
         plugin = this;
         logger.info("+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+");
-        logger.info("|     CmdControl -- Version 1.0.0     |");
+        logger.info("|     CmdControl -- Version 1.0.1     |");
         logger.info("|      Developed By: Simon_Flash      |");
         logger.info("+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+");
         try {
             discord = new URL("https://discordapp.com/invite/4wayq37");
             wiki = new URL("https://github.com/SimonFlash/CmdControl/wiki");
-        } catch (MalformedURLException ignored) {
-            getLogger().error("Unable to locate discord/wiki urls.");
+        } catch (MalformedURLException e) {
+            logger.error("Unable to locate discord/wiki urls.");
+            e.printStackTrace();
         }
+        Config.readConfig();
         CommandSpec ExecuteScript = CommandSpec.builder()
                 .permission("cmdcontrol.executescript.base")
                 .arguments(
@@ -84,7 +93,6 @@ public class CmdControl {
                 .executor(new ExecuteScript())
                 .build();
         Sponge.getCommandManager().register(plugin, ExecuteScript, "ExecuteScript", "Script");
-        Config.readConfig();
     }
 
     @Listener

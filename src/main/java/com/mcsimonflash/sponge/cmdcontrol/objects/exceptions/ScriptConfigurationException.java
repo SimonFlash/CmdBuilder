@@ -4,14 +4,14 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 
 public class ScriptConfigurationException extends Exception {
 
-    private CommentedConfigurationNode errNode;
+    private CommentedConfigurationNode node;
 
-    public ScriptConfigurationException(CommentedConfigurationNode errNode, String error) {
+    public ScriptConfigurationException(CommentedConfigurationNode node, String error) {
         super(error);
-        this.errNode = errNode;
+        this.node = node;
     }
 
-    public CommentedConfigurationNode getErrNode() {
-        return errNode;
+    public CommentedConfigurationNode getNode() {
+        return node;
     }
 }

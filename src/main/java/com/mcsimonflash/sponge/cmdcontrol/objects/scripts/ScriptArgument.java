@@ -1,6 +1,7 @@
 package com.mcsimonflash.sponge.cmdcontrol.objects.scripts;
 
 import com.mcsimonflash.sponge.cmdcontrol.objects.enums.ArgType;
+import org.spongepowered.api.command.args.CommandElement;
 
 public class ScriptArgument {
 
@@ -12,5 +13,9 @@ public class ScriptArgument {
         this.name = name;
         this.type = type;
         this.typeMeta = modifier;
+    }
+
+    public CommandElement getCmdElem() {
+        return null;
     }
 }

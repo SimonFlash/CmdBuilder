@@ -119,7 +119,7 @@ public class Config {
         } catch (ScriptConfigurationException e) {
             CmdControl.getPlugin().getLogger().error(e.getMessage() + " Script:[" + script + "]");
             if (errorComments) {
-                e.getErrNode().setComment("ERROR: " + e.getMessage());
+                e.getNode().setComment("ERROR: " + e.getMessage());
                 config.save();
             }
         }
