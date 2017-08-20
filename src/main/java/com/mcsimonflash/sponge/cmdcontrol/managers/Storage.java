@@ -1,34 +1,29 @@
 package com.mcsimonflash.sponge.cmdcontrol.managers;
 
-import com.google.common.collect.Maps;
 import com.mcsimonflash.sponge.cmdcontrol.CmdControl;
-import com.mcsimonflash.sponge.cmdcontrol.objects.configuration.ConfigWrapper;
-import com.mcsimonflash.sponge.cmdcontrol.objects.scripts.Script;
+import com.mcsimonflash.sponge.cmdcontrol.objects.miscellaneous.ConfigContainer;
 import org.spongepowered.api.entity.living.player.User;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 
 public class Storage {
 
     private static Path storDir = CmdControl.getPlugin().getDirectory().resolve("cmdcontrol").resolve("storage");
-    private static ConfigWrapper cooldowns;
+    private static ConfigContainer cooldowns;
 
-    public static Map<String, Script> scriptDirectory = Maps.newHashMap();
-    public static Map<String, String> aliasRegistry = Maps.newHashMap();
 
-    public static boolean initializeNodes() {
+    public static boolean load() {
         try {
             Files.createDirectories(storDir);
-            cooldowns = new ConfigWrapper(storDir.resolve("cooldowns.stor"), false);
+            cooldowns = new ConfigContainer(storDir.resolve("cooldowns.stor"), false);
+            return true;
         } catch (IOException e) {
             CmdControl.getPlugin().getLogger().error("Error initializing storage nodes.");
             e.printStackTrace();
             return false;
         }
-        return true;
     }
 
     public static long getCooldown(User user, String scriptName) {

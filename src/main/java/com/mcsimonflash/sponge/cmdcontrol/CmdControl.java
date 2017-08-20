@@ -1,34 +1,23 @@
 package com.mcsimonflash.sponge.cmdcontrol;
 
 import com.google.inject.Inject;
-import com.mcsimonflash.sponge.cmdcontrol.commands.ExecuteScript;
-import com.mcsimonflash.sponge.cmdcontrol.managers.Config;
-import com.mcsimonflash.sponge.cmdcontrol.managers.Storage;
 import com.mcsimonflash.sponge.cmdcontrol.managers.Util;
 import org.slf4j.Logger;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.Order;
-import org.spongepowered.api.event.command.SendCommandEvent;
-import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
-import org.spongepowered.api.event.game.state.GameStartedServerEvent;
+import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
-import org.spongepowered.api.text.Text;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 
-@Plugin(id = "cmdcontrol", name = "CmdControl", version = "s6.0-v1.0.1", authors = "Simon_Flash")
+@Plugin(id = "cmdcontrol", name = "CmdControl", version = "s6.0-v1.1.0-pr1", authors = "Simon_Flash")
 public class CmdControl {
 
     private static CmdControl plugin;
@@ -74,7 +63,7 @@ public class CmdControl {
     public void onInit(GameInitializationEvent event) {
         plugin = this;
         logger.info("+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+");
-        logger.info("|     CmdControl -- Version 1.0.1     |");
+        logger.info("|   CmdControl -- Version 1.1.0-pr1   |");
         logger.info("|      Developed By: Simon_Flash      |");
         logger.info("+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+");
         try {
@@ -84,26 +73,16 @@ public class CmdControl {
             logger.error("Unable to locate discord/wiki urls.");
             e.printStackTrace();
         }
-        Config.readConfig();
-        CommandSpec ExecuteScript = CommandSpec.builder()
-                .permission("cmdcontrol.executescript.base")
-                .arguments(
-                        GenericArguments.onlyOne(GenericArguments.string(Text.of("script-name"))),
-                        GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of("arguments"))))
-                .executor(new ExecuteScript())
-                .build();
-        Sponge.getCommandManager().register(plugin, ExecuteScript, "ExecuteScript", "Script");
     }
 
     @Listener
-    public void onStart(GameStartedServerEvent event) {
-        Util.registerAliases();
+    public void onPostInit(GamePostInitializationEvent event) {
+        Util.initialize();
     }
 
     @Listener
     public void onReload(GameReloadEvent event) {
-        Config.readConfig();
-        Util.registerAliases();
+        Util.initialize();
     }
 
     @Listener
@@ -113,12 +92,4 @@ public class CmdControl {
         }
     }
 
-    @Listener(order = Order.FIRST)
-    public void onSendCommand(SendCommandEvent event, @Root CommandSource src) {
-        String name = Storage.aliasRegistry.get(event.getCommand());
-        if (name != null) {
-            event.setCancelled(true);
-            Storage.scriptDirectory.get(name).process(src, event.getArguments());
-        }
-    }
 }

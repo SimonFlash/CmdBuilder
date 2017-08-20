@@ -1,4 +1,4 @@
-package com.mcsimonflash.sponge.cmdcontrol.objects.configuration;
+package com.mcsimonflash.sponge.cmdcontrol.objects.miscellaneous;
 
 import com.mcsimonflash.sponge.cmdcontrol.CmdControl;
 import com.mcsimonflash.sponge.cmdcontrol.managers.Util;
@@ -8,12 +8,12 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class ConfigWrapper {
+public class ConfigContainer {
 
     private HoconConfigurationLoader loader;
     private CommentedConfigurationNode node;
 
-    public ConfigWrapper(Path path, boolean asset) throws IOException {
+    public ConfigContainer(Path path, boolean asset) throws IOException {
         loader = Util.getLoader(path, asset);
         node = loader.load();
     }
@@ -32,4 +32,5 @@ public class ConfigWrapper {
         }
         return true;
     }
+
 }

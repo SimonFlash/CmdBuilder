@@ -1,7 +1,6 @@
 package com.mcsimonflash.sponge.cmdcontrol.objects.elements;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.ArgumentParseException;
 import org.spongepowered.api.command.args.CommandArgs;
@@ -11,14 +10,12 @@ import org.spongepowered.api.text.Text;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.UUID;
 
-public class RangedInteger extends CommandElement {
+public class Uuid extends CommandElement {
 
-    private Range<Integer> range;
-
-    public RangedInteger(@Nullable Text key, Range<Integer> range) {
+    public Uuid(@Nullable Text key) {
         super(key);
-        this.range = range;
     }
 
     @Nullable
@@ -26,13 +23,10 @@ public class RangedInteger extends CommandElement {
     protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
         String arg = args.next();
         try {
-            int num = Integer.parseInt(arg);
-            if (range.contains(num)) {
-                return num;
-            }
-            throw args.createError(Text.of("Integer \"" + num + "\" is not within range \"" + range + "\"."));
-        } catch (NumberFormatException ignored) {
-            throw args.createError(Text.of("Argument \"" + arg + "\" is not an Integer."));
+            arg = arg.length() == 32 ? arg = arg.substring(0, 8) + "-" + arg.substring(8, 12) + "-" + arg.substring(12, 16) + "-" + arg.substring(16, 20) + "-" + arg.substring(20) : arg;
+            return UUID.fromString(arg);
+        } catch (IllegalArgumentException ignored) {
+            throw args.createError(Text.of("Argument \"" + arg + "\" is not a valid Uuid."));
         }
     }
 

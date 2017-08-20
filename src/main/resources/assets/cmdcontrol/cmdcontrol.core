@@ -7,7 +7,4 @@
 # For support, check out my Discord server
 # https://discordapp.com/invite/4wayq37
 
-config {
-    # Adds comments into the config when a script errors. May cause issues with formatting.
-    error-comments=true
-}
+# This is a sad file... coming soon ;)

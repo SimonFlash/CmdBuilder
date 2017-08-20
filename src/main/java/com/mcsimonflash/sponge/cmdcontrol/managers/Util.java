@@ -2,10 +2,10 @@ package com.mcsimonflash.sponge.cmdcontrol.managers;
 
 import com.google.common.reflect.TypeToken;
 import com.mcsimonflash.sponge.cmdcontrol.CmdControl;
-import com.mcsimonflash.sponge.cmdcontrol.objects.exceptions.ScriptExecutionException;
-import com.mcsimonflash.sponge.cmdcontrol.objects.exceptions.ScriptConfigurationException;
-import com.mcsimonflash.sponge.cmdcontrol.objects.scripts.Script;
+import com.mcsimonflash.sponge.cmdcontrol.api.ValueTypeEntry;
+import com.mcsimonflash.sponge.cmdcontrol.api.ValueTypes;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.commented.SimpleCommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.spongepowered.api.Sponge;
@@ -16,17 +16,21 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
 
-    public static final Pattern argPattern = Pattern.compile("(<(?:([@])?([A-Za-z0-9]+))(?:[#]([A-Za-z0-9]+))?>)");
-    public static final Pattern doubleRangePattern = Pattern.compile("(?:([-+]?[0-9]*[.]?[0-9]+)[ ]?<([=])?[ ]?)?#(?:[ ]?<([=])?[ ]?([-+]?[0-9]*[.]?[0-9]+))?");
-    public static final Pattern integerRangePattern = Pattern.compile("(?:([-+]?[0-9]+)[ ]?<([=])?[ ]?)?#(?:[ ]?<([=])?[ ]?([-+]?[0-9]+))?");
-    public static final Pattern separatorPattern = Pattern.compile(", |,| ");
-    public static final Text msgPrefix = toText("&4[&6CmdControl&4] &e");
+    public static final Pattern argumentPattern = Pattern.compile("(<(?:([@])?([A-Za-z0-9]+))(?:[#]([A-Za-z0-9]+))?>)");
+    public static final Text prefix = toText("&4[&6CmdControl&4] &e");
+
+    public static void initialize() {
+        Config.load();
+        Storage.load();
+        Scripts.register();
+    }
 
     public static Text toText(String msg) {
         return TextSerializers.FORMATTING_CODE.deserialize(msg);
@@ -43,40 +47,50 @@ public class Util {
             }
             return HoconConfigurationLoader.builder().setPath(path).build();
         } catch (IOException e) {
-            CmdControl.getPlugin().getLogger().error("Error loading file! File:[" + path.getFileName().toString() + "]");
+            CmdControl.getPlugin().getLogger().error("Error loading file \"" + path.getFileName().toString() + "\"");
             throw e;
         }
     }
 
-    public static <T> List<T> getObjectList(CommentedConfigurationNode node, Class<T> clazz) throws ScriptConfigurationException {
+    public static CommentedConfigurationNode copyNode(CommentedConfigurationNode node) {
+        return SimpleCommentedConfigurationNode.root().setValue(node);
+    }
+
+    public static <T> List<T> getObjectList(CommentedConfigurationNode node, Class<T> clazz) throws IllegalArgumentException {
         try {
             return node.getList(TypeToken.of(clazz));
         } catch (ObjectMappingException e) {
-            throw new ScriptConfigurationException(node, "Unable to load list. | Type:[" + clazz.getSimpleName() + "] List:[" + node.getKey() + "]");
+            throw new IllegalArgumentException("Unable to load list of type \"" + clazz.getSimpleName() + "\" from node \"" + node.getKey() + "\".");
         }
     }
 
-    public static void registerAliases() {
-        Storage.aliasRegistry.clear();
-        Storage.scriptDirectory.values().forEach(Script::registerAliases);
-    }
-
-    public static String getParsedValue(CommandSource src, String string, Map<String, Object> arguments) throws ScriptExecutionException {
-        String modifiedString = string;
-        Matcher matcher = Util.argPattern.matcher(string);
+    public static String insertArguments(String string, CommandSource src, Map<String, ValueTypeEntry> arguments) {
+        Matcher matcher = argumentPattern.matcher(string);
         while (matcher.find()) {
-            if (matcher.group(2) != null) {
-                if (!matcher.group(3).equalsIgnoreCase("sender")) {
-                    throw new ScriptExecutionException("Unknown dynamic argument. | Argument:[" + matcher.group(3) + "]");
+            ValueTypeEntry entry;
+            if (matcher.group(1) != null) {
+                entry = getAttribute(matcher.group(2), src);
+            } else if (arguments.containsKey(matcher.group(2))) {
+                entry = arguments.get(matcher.group(2));
+            } else continue;
+            if (matcher.group(3) != null && matcher.group(3).length() > 1) {
+                String[] params = matcher.group(3).substring(1).split("#");
+                for (String param : params) {
+                    entry = entry.getParam(param);
                 }
-                modifiedString = modifiedString.replace(matcher.group(1), src.getName());
-            } else {
-                if (!arguments.containsKey(matcher.group(3))) {
-                    throw new ScriptExecutionException("Unknown argument. | Argument:[" + matcher.group(3) + "]");
-                }
-                modifiedString = modifiedString.replace(matcher.group(1), arguments.get(matcher.group(3)).toString());
             }
+            string = matcher.replaceAll(entry.getString());
         }
-        return modifiedString;
+        return string;
     }
+
+    public static ValueTypeEntry getAttribute(String attribute, CommandSource src) {
+        switch (attribute.toLowerCase()) {
+            case "sender":
+                return new ValueTypeEntry(ValueTypes.PLAYER, src);
+            default:
+                return new ValueTypeEntry(ValueTypes.STRING, attribute);
+        }
+    }
+
 }

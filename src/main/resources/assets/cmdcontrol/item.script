@@ -24,7 +24,9 @@ arguments=[
     },{
         name="quantity"
         type="Integer"
-        type-meta="0 < #"
+        meta {
+            range="0 < #"
+        }
     }
 ]
 executors=[
