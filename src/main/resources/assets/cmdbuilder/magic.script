@@ -1,0 +1,52 @@
+# CmdControl - Developed by Simon_Flash
+# Config Version - 1.1.0
+#
+# For reference, check out the CmdControl Wiki
+# https://github.com/SimonFlash/CmdControl/wiki
+#
+# For support, check out my Discord server
+# https://discordapp.com/invite/4wayq37
+
+# magic - attack a source with a magic spell
+#
+# The source is either a player name or the server
+# console (defined with #console or #server)
+#
+# This script maps into a pre-existing command
+# (/cmdcontrol). Please be careful when doing this!
+#
+# Usage - /script magic, /magic, /cmdbuilder magic
+
+arguments=[
+    {
+        name="target"
+        type="Source"
+    },{
+        name="spell"
+        type="Choices"
+        meta {
+            choices {
+                "acid-spray"="&aAcid Spray"
+                "baby-groot"="&2Baby Groot"
+                "death-grip"="&8Death Grip"
+                "fireball"="&4Fireball"
+                "frost-breath"="&bFrost Breath"
+                "jazz-hands"="&dJazz Hands?"
+                "lightning"="&eLightning"
+                "vortex"="&5Vortex"
+            }
+            messages {
+                "no-choice"="&4<arg>&c is not an available spell!"
+            }
+        }
+    }
+]
+executors=[
+    {
+        command="me &fattacked &f<target> &fwith <spell>&f!"
+        source="Sender"
+    }
+]
+metadata{
+    aliases=["magic", "cmdbuilder magic"]
+}

@@ -1,0 +1,37 @@
+# CmdControl - Developed by Simon_Flash
+# Config Version - 1.0.0
+#
+# For reference, check out the CmdControl Wiki
+# https://github.com/SimonFlash/CmdControl/wiki
+#
+# For support, check out my Discord server
+# https://discordapp.com/invite/4wayq37
+
+# item - simulates /give for a player, item, and quantity
+#
+# Arguments are type-verified before executing. The quantity
+# must be greater than 0.
+#
+# Usage - /script item <player> <item> <quantity>
+
+arguments=[
+    {
+        name="player"
+        type="Player"
+    },{
+        name="item"
+        type="Item"
+    },{
+        name="quantity"
+        type="Integer"
+        meta {
+            range="[1,64]"
+        }
+    }
+]
+executors=[
+    {
+        command="give <player> <item> <quantity>"
+        source="Server"
+    }
+]
