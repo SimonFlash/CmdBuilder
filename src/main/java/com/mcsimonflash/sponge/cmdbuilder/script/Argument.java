@@ -22,7 +22,7 @@ public class Argument<T> {
         this.name = name;
         this.type = type;
         this.meta = meta;
-        this.element = type.getCmdElem(Text.of(name), meta);
+        this.element = type.getCmdElem(name, meta);
     }
 
     public ValueTypeEntry<T> collectArg(CommandContext args) throws IllegalArgumentException {

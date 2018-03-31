@@ -78,14 +78,14 @@ public class Script {
                     Task.builder().name("Script '" + name + "' Executor for Source '" + src.getName() + "'")
                             .execute(executor::execute)
                             .delay(executor.getDelay(), TimeUnit.MILLISECONDS)
-                            .submit(CmdBuilder.getInstance().Container);
+                            .submit(CmdBuilder.get().getContainer());
                 } else {
                     executor.execute();
                 }
             }
             return CommandResult.success();
         } catch (IllegalArgumentException e) {
-            src.sendMessage(CmdBuilder.getInstance().Prefix.concat(Util.toText(e.getMessage())));
+            src.sendMessage(CmdBuilder.get().getPrefix().concat(Util.toText(e.getMessage())));
             return CommandResult.empty();
         }
     }

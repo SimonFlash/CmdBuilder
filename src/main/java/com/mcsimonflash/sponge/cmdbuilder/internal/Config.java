@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 public class Config {
 
-    private static Path rootDir = CmdBuilder.getInstance().Directory, scriptDir = rootDir.resolve("scripts"), storageDir = rootDir.resolve("storage");
+    private static Path rootDir = CmdBuilder.get().getDirectory(), scriptDir = rootDir.resolve("scripts"), storageDir = rootDir.resolve("storage");
     private static ConfigHolder<CommentedConfigurationNode> core, users;
 
     public static void load() {
@@ -33,20 +33,20 @@ public class Config {
                 getLoader(scriptDir, "lighten.script", true);
             }
             if (core.getNode("-legacy").getBoolean()) {
-                CmdBuilder.getInstance().Logger.warn("Attempting to migrate legacy scripts from CmdControl.");
+                CmdBuilder.get().getLogger().warn("Attempting to migrate legacy scripts from CmdControl.");
                 Path legacyScriptDir = rootDir.getParent().resolve("cmdcontrol").resolve("scripts");
                 if (Files.exists(legacyScriptDir)) {
                     Files.walk(legacyScriptDir).filter(Files::isRegularFile).forEach(Config::legacyScript);
-                    CmdBuilder.getInstance().Logger.warn("Finished migrating legacy scripts from CmdControl.");
+                    CmdBuilder.get().getLogger().warn("Finished migrating legacy scripts from CmdControl.");
                 } else {
-                    CmdBuilder.getInstance().Logger.warn("The folder /config/cmdcontrol/scripts does not exist; ending legacy migration.");
+                    CmdBuilder.get().getLogger().warn("The folder /config/cmdcontrol/scripts does not exist; ending legacy migration.");
                 }
                 core.getNode("-legacy").setValue(false);
                 core.save();
             }
             Files.walk(scriptDir).filter(Files::isRegularFile).forEach(Config::loadScript);
         } catch (IOException e) {
-            CmdBuilder.getInstance().Logger.error("An unexpected IOException occurred loading files.");
+            CmdBuilder.get().getLogger().error("An unexpected IOException occurred loading files.");
             e.printStackTrace();
         }
     }
@@ -57,14 +57,14 @@ public class Config {
             if (Files.notExists(path)) {
                 Files.createDirectories(dir);
                 if (asset) {
-                    CmdBuilder.getInstance().Container.getAsset(name).get().copyToFile(path);
+                    CmdBuilder.get().getContainer().getAsset(name).get().copyToFile(path);
                 } else {
                     Files.createFile(path);
                 }
             }
             return ConfigHolder.of(HoconConfigurationLoader.builder().setPath(path).build());
         } catch (IOException e) {
-            CmdBuilder.getInstance().Logger.error("Unable to load config file " + name + ".");
+            CmdBuilder.get().getLogger().error("Unable to load config file " + name + ".");
             throw e;
         }
     }
@@ -77,27 +77,27 @@ public class Config {
             Scripts.register(Script.builder()
                     .name(fileName)
                     .arguments(config.getNode("arguments").getChildrenList().stream().map(a -> Argument.builder()
-                            .name(a.getNode("name").getString())
-                            .type(ValueTypeRegistry.getTypeOrThrow(a.getNode("type").getString()))
+                            .name(a.getNode("name").getString(""))
+                            .type(ValueTypeRegistry.getTypeOrThrow(a.getNode("type").getString("")))
                             .meta(a.getNode("meta"))
                             .build()).collect(Collectors.toList()))
                     .executors(config.getNode("executors").getChildrenList().stream().map(e -> Executor.builder()
-                            .delay(e.getNode("delay").getLong())
-                            .command(e.getNode("command").getString())
+                            .delay(e.getNode("delay").getLong(0))
+                            .command(e.getNode("command").getString(""))
                             .source(Source.getSourceOrThrow(e.getNode("source").getString("server")))
                             .build()).collect(Collectors.toList()))
                     .metadata(Metadata.builder()
                             .aliases(Util.getObjectList(config.getNode("metadata", "aliases"), String.class))
-                            .cooldown(config.getNode("metadata", "cooldown").getLong())
-                            .cost(config.getNode("metadata", "cost").getDouble())
+                            .cooldown(config.getNode("metadata", "cooldown").getLong(0))
+                            .cost(config.getNode("metadata", "cost").getDouble(0.0))
                             .override(config.getNode("metadata", "override").getBoolean())
                             .build())
                     .build());
         } catch (IOException e) {
-            CmdBuilder.getInstance().Logger.error("An unexpected IOException occurred loading script '" + fileName + "'.");
+            CmdBuilder.get().getLogger().error("An unexpected IOException occurred loading script '" + fileName + "'.");
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
-            CmdBuilder.getInstance().Logger.error("Error loading script '" + fileName + "': " + e.getMessage());
+            CmdBuilder.get().getLogger().error("Error loading script '" + fileName + "': " + e.getMessage());
         }
     }
 
@@ -118,10 +118,10 @@ public class Config {
             ConfigHolder config = ConfigHolder.of(HoconConfigurationLoader.builder().setPath(scriptDir.resolve(path.getFileName())).build());
             config.getNode().setValue(legacy.getNode());
         } catch (IOException e) {
-            CmdBuilder.getInstance().Logger.error("An unexpected IOException occurred loading script '" + name + "'.");
+            CmdBuilder.get().getLogger().error("An unexpected IOException occurred loading script '" + name + "'.");
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
-            CmdBuilder.getInstance().Logger.error("Error loading script '" + name + "': " + e.getMessage());
+            CmdBuilder.get().getLogger().error("Error loading script '" + name + "': " + e.getMessage());
         }
     }
 
@@ -133,14 +133,5 @@ public class Config {
         users.getNode(uuid.toString(), "cooldowns", script.getName()).setValue(cooldown);
         return users.save();
     }
-
-    /*public static CommentedConfigurationNode getMeta(UUID uuid) {
-        return NodeUtils.copy(users.getNode(uuid.toString(), "meta"));
-    }
-
-    public static boolean setMeta(UUID uuid, String[] path, Object value) {
-        users.getNode(uuid.toString(), "meta").getNode((Object[]) path).setValue(value);
-        return users.save();
-    }*/
 
 }

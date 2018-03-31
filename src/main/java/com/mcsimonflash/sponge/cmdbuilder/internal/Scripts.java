@@ -40,7 +40,7 @@ public class Scripts {
                 mapping = child == null ? new Mapping(name, mapping) : child;
             }
             if (mapping.Script != null) {
-                CmdBuilder.getInstance().Logger.error("Script " + script.getName() + " attempted to register alias " + a + "already registered to " + mapping.Script.getName() + "!");
+                CmdBuilder.get().getLogger().error("Script " + script.getName() + " attempted to register alias " + a + "already registered to " + mapping.Script.getName() + "!");
             }
             mapping.Script = script;
         });

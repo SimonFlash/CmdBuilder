@@ -22,7 +22,7 @@ public class Util {
         Mapping.ROOT.Children.clear();
         Sponge.getCommandManager().get("script").ifPresent(Sponge.getCommandManager()::removeMapping);
         Config.load();
-        Sponge.getCommandManager().register(CmdBuilder.getInstance().Container, CommandSpec.builder()
+        Sponge.getCommandManager().register(CmdBuilder.get().getContainer(), CommandSpec.builder()
                 .children(Scripts.directory.values().stream().collect(Collectors.toMap(s -> Lists.newArrayList(s.getName()), Script::getSpec)))
                 .build(), "script");
     }
@@ -38,30 +38,5 @@ public class Util {
             throw new IllegalArgumentException("Unable to load list of type '" + clazz.getSimpleName() + "' from node '" + node.getKey() + "'.");
         }
     }
-
-    /*public static Optional<Integer> getIntegerOption(Subject subject, String key) {
-        try {
-            return subject.getOption(key).map(Integer::parseInt);
-        } catch (NumberFormatException e) {
-            return Optional.empty();
-        }
-    }
-
-    public static Object toMapableObject(String value) {
-        if (value.contains(",")) {
-            return Arrays.stream(value.split(",", -1)).map(Util::toMapableObject).collect(Collectors.toList());
-        } else if (value.equalsIgnoreCase("true")) {
-            return true;
-        } else if (value.equalsIgnoreCase("false")) {
-            return false;
-        }
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException ignored) {}
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException ignored) {}
-        return value;
-    }*/
 
 }

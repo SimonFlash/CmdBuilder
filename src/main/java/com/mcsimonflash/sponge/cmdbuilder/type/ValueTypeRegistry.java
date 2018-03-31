@@ -45,21 +45,21 @@ public class ValueTypeRegistry {
     }
 
     static {
-        register(CmdBuilder.getInstance().Container, ValueTypes.BOOLEAN);
-        register(CmdBuilder.getInstance().Container, ValueTypes.CHOICES);
-        register(CmdBuilder.getInstance().Container, ValueTypes.DOUBLE);
-        register(CmdBuilder.getInstance().Container, ValueTypes.INTEGER);
-        register(CmdBuilder.getInstance().Container, ValueTypes.ITEM);
-        register(CmdBuilder.getInstance().Container, ValueTypes.JOINED_STRINGS);
-        register(CmdBuilder.getInstance().Container, ValueTypes.PLAYER);
-        register(CmdBuilder.getInstance().Container, ValueTypes.SOURCE);
-        register(CmdBuilder.getInstance().Container, ValueTypes.STRING);
-        register(CmdBuilder.getInstance().Container, ValueTypes.TRISTATE);
-        register(CmdBuilder.getInstance().Container, ValueTypes.UNKNOWN);
-        register(CmdBuilder.getInstance().Container, ValueTypes.USER);
-        register(CmdBuilder.getInstance().Container, ValueTypes.UUID);
-        register(CmdBuilder.getInstance().Container, ValueTypes.VECTOR_3D);
-        register(CmdBuilder.getInstance().Container, ValueTypes.WORLD);
+        register(CmdBuilder.get().getContainer(), ValueTypes.BOOLEAN);
+        register(CmdBuilder.get().getContainer(), ValueTypes.CHOICES);
+        register(CmdBuilder.get().getContainer(), ValueTypes.DOUBLE);
+        register(CmdBuilder.get().getContainer(), ValueTypes.INTEGER);
+        register(CmdBuilder.get().getContainer(), ValueTypes.ITEM);
+        register(CmdBuilder.get().getContainer(), ValueTypes.JOINED_STRINGS);
+        register(CmdBuilder.get().getContainer(), ValueTypes.PLAYER);
+        register(CmdBuilder.get().getContainer(), ValueTypes.SOURCE);
+        register(CmdBuilder.get().getContainer(), ValueTypes.STRING);
+        register(CmdBuilder.get().getContainer(), ValueTypes.TRISTATE);
+        register(CmdBuilder.get().getContainer(), ValueTypes.UNKNOWN);
+        register(CmdBuilder.get().getContainer(), ValueTypes.USER);
+        register(CmdBuilder.get().getContainer(), ValueTypes.UUID);
+        register(CmdBuilder.get().getContainer(), ValueTypes.VECTOR_3D);
+        register(CmdBuilder.get().getContainer(), ValueTypes.WORLD);
     }
 
 }

@@ -2,7 +2,6 @@ package com.mcsimonflash.sponge.cmdbuilder.type;
 
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.command.args.CommandElement;
-import org.spongepowered.api.text.Text;
 
 public abstract class ValueType<T> {
 
@@ -12,7 +11,7 @@ public abstract class ValueType<T> {
         this.name = name;
     }
 
-    public abstract CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException;
+    public abstract CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException;
 
     public ValueTypeEntry getParam(Object object, String param) {
         return ValueTypes.STRING.createEntry(getString(object) + "#" + param);

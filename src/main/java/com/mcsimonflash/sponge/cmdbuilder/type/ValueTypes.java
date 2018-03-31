@@ -5,7 +5,7 @@ import com.google.common.collect.BoundType;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
 import com.mcsimonflash.sponge.cmdcontrol.command.parser.SourceParser;
-import com.mcsimonflash.sponge.cmdcontrol.teslalibs.command.arguments.Arguments;
+import com.mcsimonflash.sponge.cmdcontrol.teslalibs.argument.Arguments;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandElement;
@@ -28,15 +28,15 @@ public class ValueTypes {
     public static final ValueType<Boolean> BOOLEAN = new ValueType<Boolean>("Boolean") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.booleann().toElement(key);
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
+            return Arguments.booleanObj().toElement(key);
         }
 
     };
     public static final ValueType<List<String>> CHOICES = new ValueType<List<String>>("Choices") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             return Arguments.choices(meta.getNode("choices").getChildrenMap().entrySet().stream().collect(Collectors.toMap(e -> (String) e.getKey(), e -> e.getValue().getString((String) e.getKey()))), ImmutableMap.of("no-choice", meta.getNode("messages", "no-choice").getString("No choice available for <key>."))).toElement(key);
         }
 
@@ -46,15 +46,15 @@ public class ValueTypes {
         private final Pattern RANGE_PATTERN = Pattern.compile("([(\\[])(\\*|[-+]?[0-9]*[.]?[0-9]+),(\\*|[-+]?[0-9]*[.]?[0-9]+)([)\\]])");
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             ConfigurationNode rangeNode = meta.getNode("range");
             if (rangeNode.isVirtual()) {
-                return Arguments.doublee().toElement(key);
+                return Arguments.doubleObj().toElement(key);
             }
             String rangeStr = rangeNode.getString("");
             Matcher matcher = RANGE_PATTERN.matcher(rangeStr);
             if (matcher.matches()) {
-                return Arguments.doublee().inRange(Range.range(
+                return Arguments.doubleObj().inRange(Range.range(
                         matcher.group(2).equals("*") ? Double.MIN_VALUE : Double.parseDouble(matcher.group(2)),
                         matcher.group(1).equals("(") ? BoundType.OPEN : BoundType.CLOSED,
                         matcher.group(3).equals("*") ? Double.MAX_VALUE : Double.parseDouble(matcher.group(2)),
@@ -70,15 +70,15 @@ public class ValueTypes {
         private final Pattern RANGE_PATTERN = Pattern.compile("([(\\[])(\\*|[-+]?[0-9]+),(\\*|[-+]?[0-9]+)([)\\]])");
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             ConfigurationNode rangeNode = meta.getNode("range");
             if (rangeNode.isVirtual()) {
-                return Arguments.integer().toElement(key);
+                return Arguments.intObj().toElement(key);
             }
             String range = rangeNode.getString("");
             Matcher matcher = RANGE_PATTERN.matcher(range);
             if (matcher.matches()) {
-                return Arguments.integer().inRange(Range.range(
+                return Arguments.intObj().inRange(Range.range(
                         matcher.group(2).equals("*") ? Integer.MIN_VALUE : Integer.parseInt(matcher.group(2)),
                         matcher.group(1).equals("(") ? BoundType.OPEN : BoundType.CLOSED,
                         matcher.group(3).equals("*") ? Integer.MAX_VALUE : Integer.parseInt(matcher.group(3)),
@@ -92,8 +92,8 @@ public class ValueTypes {
     public static final ValueType<ItemType> ITEM = new ValueType<ItemType>("Item") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
-            return GenericArguments.catalogedElement(key, ItemType.class);
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
+            return GenericArguments.catalogedElement(Text.of(key), ItemType.class);
         }
 
         @Override
@@ -105,7 +105,7 @@ public class ValueTypes {
     public static final ValueType<String> JOINED_STRINGS = new ValueType<String>("JoinedStrings") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             return Arguments.remainingStrings().toElement(key);
         }
 
@@ -113,7 +113,7 @@ public class ValueTypes {
     public static final ValueType<Player> PLAYER = new ValueType<Player>("Player") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             return Arguments.player().toElement(key);
         }
 
@@ -142,7 +142,7 @@ public class ValueTypes {
     public static final ValueType<CommandSource> SOURCE = new ValueType<CommandSource>("Source") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             return SourceParser.PARSER.toElement(key);
         }
 
@@ -155,7 +155,7 @@ public class ValueTypes {
     public static final ValueType<String> STRING = new ValueType<String>("String") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             return Arguments.string().toElement(key);
         }
 
@@ -169,7 +169,7 @@ public class ValueTypes {
                 .build();
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             return Arguments.tristate().toElement(key);
         }
 
@@ -182,7 +182,7 @@ public class ValueTypes {
     public static final ValueType<?> UNKNOWN = new ValueType<Object>("Unknown") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             return Arguments.string().toElement(key);
         }
 
@@ -190,7 +190,7 @@ public class ValueTypes {
     public static final ValueType<User> USER = new ValueType<User>("User") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             return Arguments.user().toElement(key);
         }
 
@@ -214,7 +214,7 @@ public class ValueTypes {
     public static final ValueType<java.util.UUID> UUID = new ValueType<java.util.UUID>("Uuid") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             return Arguments.user().toUuid().toElement(key);
         }
 
@@ -222,8 +222,8 @@ public class ValueTypes {
     public static final ValueType<Vector3d> VECTOR_3D = new ValueType<Vector3d>("Vector3d") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.vector3d().toElement(key);
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
+            return Arguments.position().toElement(key);
         }
 
         @Override
@@ -246,11 +246,12 @@ public class ValueTypes {
         public String getString(Object object) {
             return object instanceof Vector3d ? ((Vector3d) object).getX() + " " + ((Vector3d) object).getY() + " " + ((Vector3d) object).getZ() : super.getString(object);
         }
+
     };
     public static final ValueType<World> WORLD = new ValueType<World>("World") {
 
         @Override
-        public CommandElement getCmdElem(Text key, ConfigurationNode meta) throws IllegalArgumentException {
+        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
             return Arguments.world().toElement(key);
         }
 
