@@ -1,7 +1,7 @@
 package com.mcsimonflash.sponge.cmdbuilder.type;
 
+import com.mcsimonflash.sponge.cmdcontrol.teslalibs.configuration.ConfigurationException;
 import ninja.leaping.configurate.ConfigurationNode;
-import org.spongepowered.api.command.args.CommandElement;
 
 public abstract class ValueType<T> {
 
@@ -11,7 +11,11 @@ public abstract class ValueType<T> {
         this.name = name;
     }
 
-    public abstract CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException;
+    public abstract T deserialize(ConfigurationNode node) throws ConfigurationException;
+
+    public void serialize(ConfigurationNode node, T value) throws ConfigurationException {
+        node.setValue(value);
+    }
 
     public ValueTypeEntry getParam(Object object, String param) {
         return ValueTypes.STRING.createEntry(getString(object) + "#" + param);
@@ -27,6 +31,10 @@ public abstract class ValueType<T> {
 
     public final ValueTypeEntry<T> createEntry(T value) {
         return new ValueTypeEntry<>(this, value);
+    }
+
+    public final ValueTypeEntry<T> deserializeEntry(ConfigurationNode node) {
+        return new ValueTypeEntry<>(this, deserialize(node));
     }
 
 }

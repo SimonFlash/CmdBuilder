@@ -6,12 +6,12 @@ import com.mcsimonflash.sponge.cmdbuilder.script.Argument;
 import com.mcsimonflash.sponge.cmdbuilder.script.Executor;
 import com.mcsimonflash.sponge.cmdbuilder.script.Metadata;
 import com.mcsimonflash.sponge.cmdbuilder.script.Script;
-import com.mcsimonflash.sponge.cmdbuilder.type.ValueTypeRegistry;
+import com.mcsimonflash.sponge.cmdbuilder.type.ValueTypeEntry;
 import com.mcsimonflash.sponge.cmdcontrol.teslalibs.configuration.ConfigHolder;
+import com.mcsimonflash.sponge.cmdcontrol.teslalibs.configuration.ConfigurationException;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import org.apache.commons.io.FilenameUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,18 +31,7 @@ public class Config {
             if (Files.notExists(scriptDir)) {
                 getLoader(scriptDir, "item.script", true);
                 getLoader(scriptDir, "lighten.script", true);
-            }
-            if (core.getNode("-legacy").getBoolean()) {
-                CmdBuilder.get().getLogger().warn("Attempting to migrate legacy scripts from CmdControl.");
-                Path legacyScriptDir = rootDir.getParent().resolve("cmdcontrol").resolve("scripts");
-                if (Files.exists(legacyScriptDir)) {
-                    Files.walk(legacyScriptDir).filter(Files::isRegularFile).forEach(Config::legacyScript);
-                    CmdBuilder.get().getLogger().warn("Finished migrating legacy scripts from CmdControl.");
-                } else {
-                    CmdBuilder.get().getLogger().warn("The folder /config/cmdcontrol/scripts does not exist; ending legacy migration.");
-                }
-                core.getNode("-legacy").setValue(false);
-                core.save();
+                getLoader(scriptDir, "magic.script", true);
             }
             Files.walk(scriptDir).filter(Files::isRegularFile).forEach(Config::loadScript);
         } catch (IOException e) {
@@ -70,15 +59,15 @@ public class Config {
     }
 
     public static void loadScript(Path path) {
-        String fileName = path.getFileName().toString();
-        fileName = fileName.contains(".") ? fileName.substring(0, fileName.indexOf(".")) : fileName;
+        String name = path.getFileName().toString();
+        name = name.contains(".") ? name.substring(0, name.indexOf(".")) : name;
         try {
             ConfigHolder config = ConfigHolder.of(HoconConfigurationLoader.builder().setPath(path).build());
             Scripts.register(Script.builder()
-                    .name(fileName)
+                    .name(name)
                     .arguments(config.getNode("arguments").getChildrenList().stream().map(a -> Argument.builder()
                             .name(a.getNode("name").getString(""))
-                            .type(ValueTypeRegistry.getTypeOrThrow(a.getNode("type").getString("")))
+                            .parser(CmdBuilder.PARSER_TYPES.getValue((a.getNode("type").getString(""))).orElseThrow(() -> new IllegalArgumentException("Unknown parser type " + a.getNode("type").getString("undefined"))))
                             .meta(a.getNode("meta"))
                             .build()).collect(Collectors.toList()))
                     .executors(config.getNode("executors").getChildrenList().stream().map(e -> Executor.builder()
@@ -94,30 +83,6 @@ public class Config {
                             .build())
                     .build());
         } catch (IOException e) {
-            CmdBuilder.get().getLogger().error("An unexpected IOException occurred loading script '" + fileName + "'.");
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            CmdBuilder.get().getLogger().error("Error loading script '" + fileName + "': " + e.getMessage());
-        }
-    }
-
-    public static void legacyScript(Path path) {
-        String name = FilenameUtils.getBaseName(path.getFileName().toString());
-        try {
-            ConfigHolder<CommentedConfigurationNode> legacy = ConfigHolder.of(HoconConfigurationLoader.builder().setPath(path).build());
-            int delay = 0;
-            for (ConfigurationNode executor : legacy.getNode("executors").getChildrenList()) {
-                if (delay != 0) {
-                    executor.getNode("delay").setValue(delay);
-                }
-                delay += executor.getNode("wait").getInt();
-                executor.getNode("wait").setValue(null);
-            }
-            legacy.getNode("metadata", "player").setComment("Deprecated - now done automatically.");
-            legacy.getNode("metadata", "permissions").setComment("Deprecated - if your player has permission for this script, make sure they have permission for any commands they would run using it.");
-            ConfigHolder config = ConfigHolder.of(HoconConfigurationLoader.builder().setPath(scriptDir.resolve(path.getFileName())).build());
-            config.getNode().setValue(legacy.getNode());
-        } catch (IOException e) {
             CmdBuilder.get().getLogger().error("An unexpected IOException occurred loading script '" + name + "'.");
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
@@ -131,6 +96,20 @@ public class Config {
 
     public static boolean setCooldown(UUID uuid, Script script, long cooldown) {
         users.getNode(uuid.toString(), "cooldowns", script.getName()).setValue(cooldown);
+        return users.save();
+    }
+
+    public static ValueTypeEntry getMeta(UUID uuid, String name) throws ConfigurationException {
+        ConfigurationNode node = users.getNode(uuid.toString(), "meta").getNode((Object[]) name.split("\\."));
+        return CmdBuilder.VALUE_TYPES.getValue(node.getNode("type").getString("")).orElseThrow(() ->
+                new ConfigurationException(node, "Unknown value type %s.", node.getNode("type").getString("undefined")))
+                .deserializeEntry(node.getNode("value"));
+    }
+
+    public static boolean setMeta(UUID uuid, String name, ValueTypeEntry entry) {
+        ConfigurationNode node = users.getNode(uuid.toString(), "meta").getNode((Object[]) name.split("\\."));
+        node.getNode("type").setValue(entry.getType().getName());
+        entry.getType().serialize(node.getNode("value"), entry.getValue());
         return users.save();
     }
 

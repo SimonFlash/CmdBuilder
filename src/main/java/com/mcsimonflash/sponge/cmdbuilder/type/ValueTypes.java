@@ -1,99 +1,58 @@
 package com.mcsimonflash.sponge.cmdbuilder.type;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.google.common.collect.BoundType;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Range;
-import com.mcsimonflash.sponge.cmdcontrol.command.parser.SourceParser;
-import com.mcsimonflash.sponge.cmdcontrol.teslalibs.argument.Arguments;
+import com.mcsimonflash.sponge.cmdbuilder.internal.Config;
+import com.mcsimonflash.sponge.cmdbuilder.internal.Util;
+import com.mcsimonflash.sponge.cmdcontrol.teslalibs.configuration.ConfigurationException;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.CommandElement;
-import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.ItemType;
-import org.spongepowered.api.text.Text;
+import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.util.Tristate;
 import org.spongepowered.api.world.World;
 
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 public class ValueTypes {
 
     public static final ValueType<Boolean> BOOLEAN = new ValueType<Boolean>("Boolean") {
 
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.booleanObj().toElement(key);
-        }
-
-    };
-    public static final ValueType<List<String>> CHOICES = new ValueType<List<String>>("Choices") {
-
-        @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.choices(meta.getNode("choices").getChildrenMap().entrySet().stream().collect(Collectors.toMap(e -> (String) e.getKey(), e -> e.getValue().getString((String) e.getKey()))), ImmutableMap.of("no-choice", meta.getNode("messages", "no-choice").getString("No choice available for <key>."))).toElement(key);
+        public Boolean deserialize(ConfigurationNode node) throws ConfigurationException {
+            return node.getBoolean();
         }
 
     };
     public static final ValueType<Double> DOUBLE = new ValueType<Double>("Double") {
 
-        private final Pattern RANGE_PATTERN = Pattern.compile("([(\\[])(\\*|[-+]?[0-9]*[.]?[0-9]+),(\\*|[-+]?[0-9]*[.]?[0-9]+)([)\\]])");
-
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            ConfigurationNode rangeNode = meta.getNode("range");
-            if (rangeNode.isVirtual()) {
-                return Arguments.doubleObj().toElement(key);
-            }
-            String rangeStr = rangeNode.getString("");
-            Matcher matcher = RANGE_PATTERN.matcher(rangeStr);
-            if (matcher.matches()) {
-                return Arguments.doubleObj().inRange(Range.range(
-                        matcher.group(2).equals("*") ? Double.MIN_VALUE : Double.parseDouble(matcher.group(2)),
-                        matcher.group(1).equals("(") ? BoundType.OPEN : BoundType.CLOSED,
-                        matcher.group(3).equals("*") ? Double.MAX_VALUE : Double.parseDouble(matcher.group(2)),
-                        matcher.group(4).equals(")") ? BoundType.OPEN : BoundType.CLOSED))
-                        .toElement(key);
-            }
-            throw new IllegalArgumentException("Invalid Double range format.");
+        public Double deserialize(ConfigurationNode node) throws ConfigurationException {
+            return node.getDouble();
         }
 
     };
     public static final ValueType<Integer> INTEGER = new ValueType<Integer>("Integer") {
 
-        private final Pattern RANGE_PATTERN = Pattern.compile("([(\\[])(\\*|[-+]?[0-9]+),(\\*|[-+]?[0-9]+)([)\\]])");
-
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            ConfigurationNode rangeNode = meta.getNode("range");
-            if (rangeNode.isVirtual()) {
-                return Arguments.intObj().toElement(key);
-            }
-            String range = rangeNode.getString("");
-            Matcher matcher = RANGE_PATTERN.matcher(range);
-            if (matcher.matches()) {
-                return Arguments.intObj().inRange(Range.range(
-                        matcher.group(2).equals("*") ? Integer.MIN_VALUE : Integer.parseInt(matcher.group(2)),
-                        matcher.group(1).equals("(") ? BoundType.OPEN : BoundType.CLOSED,
-                        matcher.group(3).equals("*") ? Integer.MAX_VALUE : Integer.parseInt(matcher.group(3)),
-                        matcher.group(4).equals(")") ? BoundType.OPEN : BoundType.CLOSED))
-                        .toElement(key);
-            }
-            throw new IllegalArgumentException("Invalid Integer range meta: " + range);
+        public Integer deserialize(ConfigurationNode node) throws ConfigurationException {
+            return node.getInt();
         }
 
     };
     public static final ValueType<ItemType> ITEM = new ValueType<ItemType>("Item") {
 
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return GenericArguments.catalogedElement(Text.of(key), ItemType.class);
+        public ItemType deserialize(ConfigurationNode node) throws ConfigurationException {
+            return Sponge.getRegistry().getType(ItemType.class, node.getString("")).orElseThrow(() ->
+                    new ConfigurationException(node, "No item type found for id %s.", node.getString("")));
+        }
+
+        @Override
+        public void serialize(ConfigurationNode node, ItemType value) {
+            node.setValue(value.getId());
         }
 
         @Override
@@ -102,32 +61,42 @@ public class ValueTypes {
         }
 
     };
-    public static final ValueType<String> JOINED_STRINGS = new ValueType<String>("JoinedStrings") {
+    public static final ValueType<ConfigurationNode> NODE = new ValueType<ConfigurationNode>("Node") {
 
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.remainingStrings().toElement(key);
+        public ConfigurationNode deserialize(ConfigurationNode node) throws ConfigurationException {
+            return node;
+        }
+
+        @Override
+        public ValueTypeEntry getParam(Object object, String param) {
+            return object instanceof ConfigurationNode ? NODE.createEntry(((ConfigurationNode) object).getNode(param)) : super.getParam(object, param);
         }
 
     };
     public static final ValueType<Player> PLAYER = new ValueType<Player>("Player") {
 
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.player().toElement(key);
+        public Player deserialize(ConfigurationNode node) throws ConfigurationException {
+            return Sponge.getServer().getPlayer(UUID.deserialize(node)).orElseThrow(() ->
+                    new ConfigurationException(node, "No player with uuid %s.", node.getString("undefined")));
+        }
+
+        @Override
+        public void serialize(ConfigurationNode node, Player value) {
+            node.setValue(value.getUniqueId().toString());
         }
 
         @Override
         public ValueTypeEntry getParam(Object object, String param) {
             if (object instanceof Player) {
-                Player player = (Player) object;
+                if (param.startsWith("meta.") && param.length() > 5) {
+                    return Config.getMeta(((Player) object).getUniqueId(), param.substring(5));
+                }
                 switch (param.toLowerCase()) {
-                    case "position":
-                        return VECTOR_3D.createEntry(player.getLocation().getPosition());
-                    case "uuid":
-                        return UUID.createEntry(player.getUniqueId());
-                    case "world":
-                        return WORLD.createEntry(player.getWorld());
+                    case "position": return VECTOR_3D.createEntry(((Player) object).getLocation().getPosition());
+                    case "uuid": return UUID.createEntry(((Player) object).getUniqueId());
+                    case "world": return WORLD.createEntry(((Player) object).getWorld());
                 }
             }
             return super.getParam(object, param);
@@ -142,8 +111,21 @@ public class ValueTypes {
     public static final ValueType<CommandSource> SOURCE = new ValueType<CommandSource>("Source") {
 
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return SourceParser.PARSER.toElement(key);
+        public CommandSource deserialize(ConfigurationNode node) throws ConfigurationException {
+            throw new UnsupportedOperationException("Cannot deserialize a Source.");
+        }
+
+        @Override
+        public void serialize(ConfigurationNode node, CommandSource value) throws ConfigurationException {
+            throw new UnsupportedOperationException("Cannot serialize a Source.");
+        }
+
+        @Override
+        public ValueTypeEntry getParam(Object object, String param) {
+            if (object instanceof CommandSource && param.startsWith("meta.") && param.length() > 5) {
+                return Config.getMeta(object instanceof Player ? ((Player) object).getUniqueId() : Util.ZERO_UUID, param.substring(5));
+            }
+            return super.getParam(object, param);
         }
 
         @Override
@@ -155,43 +137,59 @@ public class ValueTypes {
     public static final ValueType<String> STRING = new ValueType<String>("String") {
 
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.string().toElement(key);
+        public String deserialize(ConfigurationNode node) throws ConfigurationException {
+            return node.getString("");
         }
 
     };
     public static final ValueType<Tristate> TRISTATE = new ValueType<Tristate>("Tristate") {
 
-        private final Map<String, Tristate> tristates = ImmutableMap.<String, Tristate>builder()
-                .put("true", Tristate.TRUE).put("t", Tristate.TRUE).put("1", Tristate.TRUE)
-                .put("false", Tristate.FALSE).put("f", Tristate.FALSE).put("0", Tristate.FALSE)
-                .put("undefined", Tristate.UNDEFINED).put("u", Tristate.UNDEFINED).put("1/2", Tristate.UNDEFINED)
-                .build();
-
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.tristate().toElement(key);
+        public Tristate deserialize(ConfigurationNode node) throws ConfigurationException {
+            switch (node.getString("").toLowerCase()) {
+                case "true": return Tristate.TRUE;
+                case "false": return Tristate.FALSE;
+                case "undefined": return Tristate.UNDEFINED;
+                default: throw new ConfigurationException(node, "Input %s is not a Tristate.", node.getString(""));
+            }
         }
 
         @Override
-        public String getString(Object obj) {
-            return obj instanceof Tristate ? ((Tristate) obj).name().toLowerCase() : super.getString(obj);
+        public void serialize(ConfigurationNode node, Tristate value) throws ConfigurationException {
+            node.setValue(value.name().toLowerCase());
         }
 
-    };
-    public static final ValueType<?> UNKNOWN = new ValueType<Object>("Unknown") {
-
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.string().toElement(key);
+        public String getString(Object object) {
+            return object instanceof Tristate ? ((Tristate) object).name().toLowerCase() : super.getString(object);
         }
 
     };
     public static final ValueType<User> USER = new ValueType<User>("User") {
 
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.user().toElement(key);
+        public User deserialize(ConfigurationNode node) throws ConfigurationException {
+            return Sponge.getServiceManager().provideUnchecked(UserStorageService.class).get(UUID.deserialize(node)).orElseThrow(() ->
+                    new ConfigurationException(node, "No user with uuid %s.", node.getString("undefined")));
+        }
+
+        @Override
+        public void serialize(ConfigurationNode node, User value) throws ConfigurationException {
+            node.setValue(value.getUniqueId().toString());
+        }
+
+        @Override
+        public ValueTypeEntry getParam(Object object, String param) {
+            if (object instanceof User) {
+                if (param.startsWith("meta.") && param.length() > 5) {
+                    return Config.getMeta(((User) object).getUniqueId(), param.substring(5));
+                }
+                switch (param.toLowerCase()) {
+                    case "position": return VECTOR_3D.createEntry(((User) object).getPosition());
+                    case "uuid": return UUID.createEntry(((User) object).getUniqueId());
+                }
+            }
+            return super.getParam(object, param);
         }
 
         @Override
@@ -199,44 +197,51 @@ public class ValueTypes {
             return object instanceof User ? ((User) object).getName() : super.getString(object);
         }
 
-        @Override
-        public ValueTypeEntry getParam(Object object, String param) {
-            if (object instanceof User) {
-                User user = (User) object;
-                switch (param.toLowerCase()) {
-                    case "uuid":
-                        return UUID.createEntry(user.getUniqueId());
-                }
-            }
-            return super.getParam(object, param);
-        }
     };
     public static final ValueType<java.util.UUID> UUID = new ValueType<java.util.UUID>("Uuid") {
 
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.user().toUuid().toElement(key);
+        public UUID deserialize(ConfigurationNode node) throws ConfigurationException {
+            try {
+                return java.util.UUID.fromString(node.getString(""));
+            } catch (IllegalArgumentException e) {
+                throw new ConfigurationException(node, "UUID is not in the proper form: " + e.getMessage());
+            }
+        }
+
+        @Override
+        public void serialize(ConfigurationNode node, UUID value) throws ConfigurationException {
+            node.setValue(value.toString());
         }
 
     };
     public static final ValueType<Vector3d> VECTOR_3D = new ValueType<Vector3d>("Vector3d") {
 
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.position().toElement(key);
+        public Vector3d deserialize(ConfigurationNode node) throws ConfigurationException {
+            String[] split = node.getString().split(" ");
+            if (split.length == 3) {
+                try {
+                    return Vector3d.from(Double.parseDouble(split[0]), Double.parseDouble(split[1]), Double.parseDouble(split[2]));
+                } catch (NumberFormatException e) {
+                    throw new ConfigurationException(node, "Unable to parse vector component: %s", e.getMessage());
+                }
+            }
+            throw new ConfigurationException(node, "Expected 3 vector components, received %s.", split.length);
+        }
+
+        @Override
+        public void serialize(ConfigurationNode node, Vector3d value) throws ConfigurationException {
+            node.setValue(getString(value));
         }
 
         @Override
         public ValueTypeEntry getParam(Object object, String param) {
             if (object instanceof Vector3d) {
-                Vector3d vector3d = (Vector3d) object;
                 switch (param.toLowerCase()) {
-                    case "x":
-                        return INTEGER.createEntry(vector3d.getFloorX());
-                    case "y":
-                        return INTEGER.createEntry(vector3d.getFloorY());
-                    case "z":
-                        return INTEGER.createEntry(vector3d.getFloorZ());
+                    case "x": return INTEGER.createEntry(((Vector3d) object).getFloorX());
+                    case "y": return INTEGER.createEntry(((Vector3d) object).getFloorY());
+                    case "z": return INTEGER.createEntry(((Vector3d) object).getFloorZ());
                 }
             }
             return super.getParam(object, param);
@@ -251,20 +256,19 @@ public class ValueTypes {
     public static final ValueType<World> WORLD = new ValueType<World>("World") {
 
         @Override
-        public CommandElement getCmdElem(String key, ConfigurationNode meta) throws IllegalArgumentException {
-            return Arguments.world().toElement(key);
+        public World deserialize(ConfigurationNode node) throws ConfigurationException {
+            return Sponge.getServer().getWorld(UUID.deserialize(node)).orElseThrow(() ->
+                    new ConfigurationException(node, "No world found with uuid %s.", node.getString("undefined")));
+        }
+
+        @Override
+        public void serialize(ConfigurationNode node, World value) throws ConfigurationException {
+            node.setValue(value.getUniqueId().toString());
         }
 
         @Override
         public ValueTypeEntry getParam(Object object, String param) {
-            if (object instanceof World) {
-                World world = (World) object;
-                switch (param.toLowerCase()) {
-                    case "uuid":
-                        return UUID.createEntry(world.getUniqueId());
-                }
-            }
-            return super.getParam(object, param);
+            return object instanceof World && param.toLowerCase().equals("uuid") ? UUID.createEntry(((World) object).getUniqueId()) : super.getParam(object, param);
         }
 
         @Override

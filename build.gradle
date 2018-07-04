@@ -4,9 +4,9 @@ plugins {
 }
 
 group 'com.mcsimonflash.sponge.cmdbuilder'
-version '1.2.0'
+version '1.3.0'
+ext.cmdversion = '1.2.0'
 ext.spongeversion = '7.1.0-SNAPSHOT'
-ext.cmdversion = '1.1.0'
 
 dependencies {
     compile files("libs/CmdControl-s${spongeversion.substring(0, 3)}-v${cmdversion}.jar")
@@ -20,11 +20,12 @@ dependencies {
 }
 
 jar {
-    archiveName = "${project.name}-s${spongeversion.substring(0, 3)}-v${version}.jar"
+    archiveName = "${project.name}-s${spongeversion.substring(0, 3)}-c${cmdversion}-v${version}.jar"
     manifest.attributes(
             'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
             'MixinConfigs': 'mixins.cmdbuilder.json',
-            'ForceLoadAsMod': true,
+            'FMLCorePluginContainsFMLMod': true,
+            'ForceLoadAsMod': true
     )
 }
 

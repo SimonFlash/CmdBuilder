@@ -147,15 +147,14 @@ public class Scripts {
     }
 
     public static ValueTypeEntry getAttribute(CommandSource src, String attribute) {
+        if (attribute.startsWith("meta.") && attribute.length() > 5) {
+            return Config.getMeta(Util.ZERO_UUID, attribute.substring(5));
+        }
         switch (attribute.toLowerCase()) {
-            case "player":
-                return src instanceof Player ? ValueTypes.PLAYER.createEntry((Player) src) : ValueTypes.STRING.createEntry(src.getName());
-            case "sender":
-                return ValueTypes.STRING.createEntry(src.getName());
-            case "meta":
-                return ValueTypes.STRING.createEntry(src.getName());
-            default:
-                return ValueTypes.STRING.createEntry(attribute);
+            case "player": return src instanceof Player ? ValueTypes.PLAYER.createEntry((Player) src) : ValueTypes.STRING.createEntry(src.getName());
+            case "sender": return ValueTypes.STRING.createEntry(src.getName());
+            case "server": return ValueTypes.SOURCE.createEntry(Sponge.getServer().getConsole());
+            default: return ValueTypes.STRING.createEntry(attribute);
         }
     }
 

@@ -18,12 +18,12 @@ public class ValueTypeEntry<T> {
         return value;
     }
 
-    public String getString() {
-        return type.getString(value);
+    public ValueTypeEntry<?> getParam(String param) {
+        return type.getParam(value, param);
     }
 
-    public ValueTypeEntry getParam(String param) {
-        return type.getParam(value, param);
+    public String getString() {
+        return type.getString(value);
     }
 
 }

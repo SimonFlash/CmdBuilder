@@ -7,6 +7,7 @@ import com.mcsimonflash.sponge.cmdbuilder.internal.Config;
 import com.mcsimonflash.sponge.cmdbuilder.internal.Util;
 import com.mcsimonflash.sponge.cmdbuilder.miscellaneous.ExecutorContainer;
 import com.mcsimonflash.sponge.cmdbuilder.miscellaneous.Source;
+import com.mcsimonflash.sponge.cmdbuilder.type.ParserTypes;
 import com.mcsimonflash.sponge.cmdbuilder.type.ValueTypeEntry;
 import com.mcsimonflash.sponge.cmdbuilder.type.ValueTypes;
 import org.spongepowered.api.Sponge;
@@ -143,7 +144,7 @@ public class Script {
             for (int i = 0; i < arguments.size(); i++) {
                 Argument argument = arguments.get(i);
                 checkArgument(!names.contains(argument.getName()), "Found duplicate argument named '%s'.", argument.getName());
-                checkArgument(argument.getType() != ValueTypes.JOINED_STRINGS || i == arguments.size() - 1, "Found intermediate JoinedStrings argument named '%s'", argument.getName());
+                checkArgument(argument.getParser() != ParserTypes.JOINED_STRINGS || i == arguments.size() - 1, "Found intermediate JoinedStrings argument named '%s'", argument.getName());
                 names.add(argument.getName());
             }
             return new Script(name, arguments, executors, metadata);
