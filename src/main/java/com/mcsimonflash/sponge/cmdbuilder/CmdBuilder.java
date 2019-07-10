@@ -5,6 +5,7 @@ import com.mcsimonflash.sponge.cmdbuilder.command.GetMeta;
 import com.mcsimonflash.sponge.cmdbuilder.command.SetMeta;
 import com.mcsimonflash.sponge.cmdbuilder.internal.Scripts;
 import com.mcsimonflash.sponge.cmdbuilder.internal.Util;
+import com.mcsimonflash.sponge.cmdbuilder.type.OptionalTypes;
 import com.mcsimonflash.sponge.cmdbuilder.type.ParserType;
 import com.mcsimonflash.sponge.cmdbuilder.type.ParserTypes;
 import com.mcsimonflash.sponge.cmdbuilder.type.ValueTypes;
@@ -63,6 +64,7 @@ public class CmdBuilder extends CmdPlugin {
         registerValueType(ValueTypes.UUID, container);
         registerValueType(ValueTypes.VECTOR_3D, container);
         registerValueType(ValueTypes.WORLD, container);
+        OptionalTypes.initialize();
     }
 
     @Listener
