@@ -67,7 +67,7 @@ public class Scripts {
         Mapping mapping = result.getMapping();
 
         int i = result.getStart();
-        while (i >= 0) {
+        while (i > 0) {
             while (mapping.Script == null) {
                 mapping = mapping.Parent;
                 if (mapping == null) {
