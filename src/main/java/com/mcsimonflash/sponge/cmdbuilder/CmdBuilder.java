@@ -79,7 +79,8 @@ public class CmdBuilder extends CmdPlugin {
 
     @Listener
     public void onSendCommand(SendCommandEvent event, @Root CommandSource src) {
-        Optional<CommandResult> result = Scripts.process(src, event.getCommand() + " " + event.getArguments());
+
+        Optional<CommandResult> result = Scripts.process(src, event.getCommand() + (event.getArguments().isEmpty() ? "" : " " + event.getArguments()));
         if (result.isPresent()) {
             event.setCancelled(true);
             event.setResult(result.get());
