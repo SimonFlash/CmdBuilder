@@ -8,6 +8,7 @@
 target/
 test/
 build/
+classes/
 
 # Gradle
 .gradle/
