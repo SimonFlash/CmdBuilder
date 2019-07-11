@@ -26,7 +26,7 @@ import org.spongepowered.api.plugin.PluginContainer;
 
 import java.util.Optional;
 
-@Plugin(id = "cmdbuilder", name = "CmdBuilder", version = "1.3.0", dependencies = @Dependency(id="cmdcontrol"), url = "https://ore.spongepowered.org/Simon_Flash/CmdBuilder", authors = "Simon_Flash", description = "Create, combine, and register new commands")
+@Plugin(id = "cmdbuilder", name = "CmdBuilder", version = "1.4.0", dependencies = @Dependency(id="cmdcontrol"), url = "https://ore.spongepowered.org/Simon_Flash/CmdBuilder", authors = "Simon_Flash", description = "Create, combine, and register new commands")
 public class CmdBuilder extends CmdPlugin {
 
     private static CmdBuilder instance;
