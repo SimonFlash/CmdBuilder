@@ -46,7 +46,7 @@ public class Scripts {
         });
     }
 
-    public static Mapping.Result getMapping(String path) {
+    public static Mapping.Result getMappingResult(String path) {
         Mapping mapping = Mapping.ROOT;
         String[] split = path.split(" ", -1);
         int i = 0;
@@ -62,11 +62,12 @@ public class Scripts {
     }
 
     public static Optional<CommandResult> process(CommandSource src, String arguments) {
-        Mapping.Result result = getMapping(arguments);
+        Mapping.Result result = getMappingResult(arguments);
         CommandException exception = null;
         Mapping mapping = result.getMapping();
+
         int i = result.getStart();
-        while (i >= 0) {
+        while (i > 0) {
             while (mapping.Script == null) {
                 mapping = mapping.Parent;
                 if (mapping == null) {
@@ -93,7 +94,7 @@ public class Scripts {
     }
 
     public static List<String> complete(CommandSource src, String arguments, @Nullable Location<World> position) {
-        Mapping.Result result = getMapping(arguments);
+        Mapping.Result result = getMappingResult(arguments);
         Mapping mapping = result.getMapping();
         List<String> suggestions = Lists.newArrayList();
         if (result.getStart() == result.getSplit().length - 1) {

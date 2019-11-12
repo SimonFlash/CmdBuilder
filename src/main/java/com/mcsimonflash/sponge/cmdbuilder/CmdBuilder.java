@@ -5,6 +5,7 @@ import com.mcsimonflash.sponge.cmdbuilder.command.GetMeta;
 import com.mcsimonflash.sponge.cmdbuilder.command.SetMeta;
 import com.mcsimonflash.sponge.cmdbuilder.internal.Scripts;
 import com.mcsimonflash.sponge.cmdbuilder.internal.Util;
+import com.mcsimonflash.sponge.cmdbuilder.type.OptionalTypes;
 import com.mcsimonflash.sponge.cmdbuilder.type.ParserType;
 import com.mcsimonflash.sponge.cmdbuilder.type.ParserTypes;
 import com.mcsimonflash.sponge.cmdbuilder.type.ValueTypes;
@@ -25,7 +26,7 @@ import org.spongepowered.api.plugin.PluginContainer;
 
 import java.util.Optional;
 
-@Plugin(id = "cmdbuilder", name = "CmdBuilder", version = "1.3.0", dependencies = @Dependency(id="cmdcontrol"), url = "https://ore.spongepowered.org/Simon_Flash/CmdBuilder", authors = "Simon_Flash")
+@Plugin(id = "cmdbuilder", name = "CmdBuilder", version = "1.4.0", dependencies = @Dependency(id="cmdcontrol"), url = "https://ore.spongepowered.org/Simon_Flash/CmdBuilder", authors = "Simon_Flash", description = "Create, combine, and register new commands")
 public class CmdBuilder extends CmdPlugin {
 
     private static CmdBuilder instance;
@@ -63,6 +64,7 @@ public class CmdBuilder extends CmdPlugin {
         registerValueType(ValueTypes.UUID, container);
         registerValueType(ValueTypes.VECTOR_3D, container);
         registerValueType(ValueTypes.WORLD, container);
+        OptionalTypes.initialize();
     }
 
     @Listener
@@ -79,7 +81,8 @@ public class CmdBuilder extends CmdPlugin {
 
     @Listener
     public void onSendCommand(SendCommandEvent event, @Root CommandSource src) {
-        Optional<CommandResult> result = Scripts.process(src, event.getCommand() + " " + event.getArguments());
+
+        Optional<CommandResult> result = Scripts.process(src, event.getCommand() + (event.getArguments().isEmpty() ? "" : " " + event.getArguments()));
         if (result.isPresent()) {
             event.setCancelled(true);
             event.setResult(result.get());

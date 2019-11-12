@@ -1,0 +1,17 @@
+# IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Build
+target/
+test/
+build/
+classes/
+
+# Gradle
+.gradle/
+
+\#releases/
+libs/
